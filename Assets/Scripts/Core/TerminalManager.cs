@@ -5,6 +5,7 @@ using UnityEngine;
 public class TerminalManager : MonoBehaviour
 {
     public TextMeshProUGUI terminalOutput;
+    public FileSystemManager fsManager;
 
     private List<string> buffer = new List<string>();
     private string currentInput = "";
@@ -87,7 +88,8 @@ void SubmitCommand()
 {
     if (currentMode == TerminalMode.Shell)
     {
-        buffer.Add(prompt + currentInput);
+        string cwd = fsManager.GetCurrentPath();
+        buffer.Add($"user@localhost:{cwd}$ {currentInput}");
 
         var parts = currentInput.Trim().Split(' ');
         if (parts.Length > 0 && parts[0].ToLower() == "ssh")
@@ -97,7 +99,7 @@ void SubmitCommand()
         }
         else
         {
-            var outputLines = CommandProcessor.Process(currentInput);
+            var outputLines = CommandProcessor.Process(currentInput, fsManager);
 
             if (currentInput.Trim().ToLower() == "clear")
             {
@@ -118,7 +120,6 @@ void SubmitCommand()
     }
     else if (currentMode == TerminalMode.SshUsernamePrompt)
     {
-        // <--- This was missing!
         buffer.Add("Username: " + currentInput.Trim());
         pendingSshUser = currentInput.Trim();
         currentMode = TerminalMode.SshPasswordPrompt;
@@ -141,6 +142,7 @@ void SubmitCommand()
         currentInput = "";
     }
 }
+
 
 
 
@@ -189,7 +191,8 @@ void RenderTerminal()
     // Only show the shell prompt when in Shell mode.
     if (currentMode == TerminalMode.Shell)
     {
-        displayPrompt = prompt + currentInput + cursor;
+        string cwd = fsManager.GetCurrentPath();
+        displayPrompt = $"user@localhost:{cwd}$ " + currentInput + cursor;
     }
     else if (currentMode == TerminalMode.SshUsernamePrompt)
     {
