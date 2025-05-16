@@ -13,7 +13,11 @@ public class TerminalManager : MonoBehaviour
     private float cursorBlinkRate = 0.5f;
     private List<string> commandHistory = new List<string>();
     private int historyIndex = -1;
+    private enum TerminalMode { Shell, SshUsernamePrompt, SshPasswordPrompt, Login, Password }
+    private TerminalMode currentMode = TerminalMode.Shell;
 
+    private string pendingSshIP = "";
+    private string pendingSshUser = "";
 
     // Simple static prompt for now
     private string prompt = "user@localhost:~$ ";
@@ -79,36 +83,135 @@ public class TerminalManager : MonoBehaviour
     }
 
 
-    void SubmitCommand()
+void SubmitCommand()
+{
+    if (currentMode == TerminalMode.Shell)
     {
         buffer.Add(prompt + currentInput);
 
-        var outputLines = CommandProcessor.Process(currentInput);
-
-        // If the command was 'clear', clear the buffer instead of adding output
-        if (currentInput.Trim().ToLower() == "clear")
+        var parts = currentInput.Trim().Split(' ');
+        if (parts.Length > 0 && parts[0].ToLower() == "ssh")
         {
-            buffer.Clear();
+            var sshOutput = HandleSshCommand(parts);
+            buffer.AddRange(sshOutput);
         }
         else
         {
-            buffer.AddRange(outputLines);
+            var outputLines = CommandProcessor.Process(currentInput);
+
+            if (currentInput.Trim().ToLower() == "clear")
+            {
+                buffer.Clear();
+            }
+            else
+            {
+                buffer.AddRange(outputLines);
+            }
+
+            if (!string.IsNullOrWhiteSpace(currentInput))
+                commandHistory.Add(currentInput);
+
+            historyIndex = -1;
         }
 
-        // Add non-empty commands to history
-        if (!string.IsNullOrWhiteSpace(currentInput))
-            commandHistory.Add(currentInput);
-
-        // Reset history position after a command is entered
-        historyIndex = -1;
         currentInput = "";
     }
-
-
-    void RenderTerminal()
+    else if (currentMode == TerminalMode.SshUsernamePrompt)
     {
-        string cursor = showCursor ? "_" : " ";
-        terminalOutput.text = string.Join("\n", buffer) + "\n" + prompt + currentInput + cursor;
+        // <--- This was missing!
+        buffer.Add("Username: " + currentInput.Trim());
+        pendingSshUser = currentInput.Trim();
+        currentMode = TerminalMode.SshPasswordPrompt;
+        currentInput = "";
+    }
+    else if (currentMode == TerminalMode.SshPasswordPrompt)
+    {
+        buffer.Add($"Password for {pendingSshUser}@{pendingSshIP}:");
+
+        bool loginSuccess = TrySshLogin(pendingSshUser, pendingSshIP, currentInput.Trim());
+        if (loginSuccess)
+        {
+            buffer.Add($"Connected to {pendingSshIP} as {pendingSshUser}.");
+        }
+        else
+        {
+            buffer.Add("Access denied.");
+        }
+        currentMode = TerminalMode.Shell;
+        currentInput = "";
+    }
+}
+
+
+
+List<string> HandleSshCommand(string[] args)
+{
+    var output = new List<string>();
+    if (args.Length < 2)
+    {
+        output.Add("Usage: ssh [user@]host");
+        return output;
     }
 
+    string arg = args[1];
+
+    if (arg.Contains("@"))
+    {
+        // ssh user@ip
+        var split = arg.Split('@');
+        pendingSshUser = split[0];
+        pendingSshIP = split[1];
+        currentMode = TerminalMode.SshPasswordPrompt;
+    }
+    else
+    {
+        // ssh ip
+        pendingSshIP = arg;
+        pendingSshUser = "";
+        currentMode = TerminalMode.SshUsernamePrompt;
+    }
+    return output;
 }
+
+bool TrySshLogin(string username, string ip, string password)
+{
+    // TODO: Replace this with real network/user check
+    // For now: allow login if password is "password"
+    return password == "password";
+}
+
+
+void RenderTerminal()
+{
+    string cursor = showCursor ? "_" : " ";
+    string displayPrompt;
+
+    // Only show the shell prompt when in Shell mode.
+    if (currentMode == TerminalMode.Shell)
+    {
+        displayPrompt = prompt + currentInput + cursor;
+    }
+    else if (currentMode == TerminalMode.SshUsernamePrompt)
+    {
+        displayPrompt = "Username: " + currentInput + cursor;
+    }
+    else if (currentMode == TerminalMode.SshPasswordPrompt)
+    {
+        displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + new string('*', currentInput.Length) + cursor;
+        // Or if you don't want to echo password chars:
+        // displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + cursor;
+    }
+    else
+    {
+        displayPrompt = currentInput + cursor;
+    }
+
+if (buffer.Count > 0)
+    terminalOutput.text = string.Join("\n", buffer) + "\n" + displayPrompt;
+else
+    terminalOutput.text = displayPrompt;
+}
+
+
+}
+
