@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using System.Collections;
 
 public class TerminalManager : MonoBehaviour
 {
@@ -23,6 +24,9 @@ public class TerminalManager : MonoBehaviour
     // Simple static prompt for now
     private string prompt = "user@localhost:~$ ";
 
+    // Modal read state flag
+    private bool inModalRead = false;
+
     void Update()
     {
         HandleInput();
@@ -39,6 +43,9 @@ public class TerminalManager : MonoBehaviour
 
     void HandleInput()
     {
+        // Prevent any command/input during modal read
+        if (inModalRead) return;
+
         foreach (char c in Input.inputString)
         {
             if (c == '\b')
@@ -83,138 +90,177 @@ public class TerminalManager : MonoBehaviour
         }
     }
 
-
-void SubmitCommand()
-{
-    if (currentMode == TerminalMode.Shell)
+    void SubmitCommand()
     {
-        string cwd = fsManager.GetCurrentPath();
-        buffer.Add($"user@localhost:{cwd}$ {currentInput}");
-
-        var parts = currentInput.Trim().Split(' ');
-        if (parts.Length > 0 && parts[0].ToLower() == "ssh")
+        if (currentMode == TerminalMode.Shell)
         {
-            var sshOutput = HandleSshCommand(parts);
-            buffer.AddRange(sshOutput);
-        }
-        else
-        {
-            var outputLines = CommandProcessor.Process(currentInput, fsManager);
+            string cwd = fsManager.GetCurrentPath();
+            buffer.Add($"user@localhost:{cwd}$ {currentInput}");
 
-            if (currentInput.Trim().ToLower() == "clear")
+            var parts = currentInput.Trim().Split(' ');
+            if (parts.Length > 0 && parts[0].ToLower() == "ssh")
             {
-                buffer.Clear();
+                var sshOutput = HandleSshCommand(parts);
+                buffer.AddRange(sshOutput);
             }
             else
             {
-                buffer.AddRange(outputLines);
+                var outputLines = CommandProcessor.Process(currentInput, fsManager);
+
+                if (currentInput.Trim().ToLower() == "clear")
+                {
+                    buffer.Clear();
+                }
+                else
+                {
+                    // Intercept and handle the __READ__ marker for modal read
+                    bool handledRead = false;
+                    foreach (var line in outputLines)
+                    {
+                        if (line.StartsWith("__READ__:"))
+                        {
+                            string filename = line.Substring(9);
+                            inModalRead = true; // Block input until modal exits
+                            StartCoroutine(ReadFileModal(filename));
+                            handledRead = true;
+                        }
+                    }
+                    if (!handledRead)
+                    {
+                        buffer.AddRange(outputLines);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(currentInput))
+                    commandHistory.Add(currentInput);
+
+                historyIndex = -1;
             }
 
-            if (!string.IsNullOrWhiteSpace(currentInput))
-                commandHistory.Add(currentInput);
+            currentInput = "";
+        }
+        else if (currentMode == TerminalMode.SshUsernamePrompt)
+        {
+            buffer.Add("Username: " + currentInput.Trim());
+            pendingSshUser = currentInput.Trim();
+            currentMode = TerminalMode.SshPasswordPrompt;
+            currentInput = "";
+        }
+        else if (currentMode == TerminalMode.SshPasswordPrompt)
+        {
+            buffer.Add($"Password for {pendingSshUser}@{pendingSshIP}:");
 
-            historyIndex = -1;
+            bool loginSuccess = TrySshLogin(pendingSshUser, pendingSshIP, currentInput.Trim());
+            if (loginSuccess)
+            {
+                buffer.Add($"Connected to {pendingSshIP} as {pendingSshUser}.");
+            }
+            else
+            {
+                buffer.Add("Access denied.");
+            }
+            currentMode = TerminalMode.Shell;
+            currentInput = "";
+        }
+    }
+
+    List<string> HandleSshCommand(string[] args)
+    {
+        var output = new List<string>();
+        if (args.Length < 2)
+        {
+            output.Add("Usage: ssh [user@]host");
+            return output;
         }
 
-        currentInput = "";
-    }
-    else if (currentMode == TerminalMode.SshUsernamePrompt)
-    {
-        buffer.Add("Username: " + currentInput.Trim());
-        pendingSshUser = currentInput.Trim();
-        currentMode = TerminalMode.SshPasswordPrompt;
-        currentInput = "";
-    }
-    else if (currentMode == TerminalMode.SshPasswordPrompt)
-    {
-        buffer.Add($"Password for {pendingSshUser}@{pendingSshIP}:");
+        string arg = args[1];
 
-        bool loginSuccess = TrySshLogin(pendingSshUser, pendingSshIP, currentInput.Trim());
-        if (loginSuccess)
+        if (arg.Contains("@"))
         {
-            buffer.Add($"Connected to {pendingSshIP} as {pendingSshUser}.");
+            // ssh user@ip
+            var split = arg.Split('@');
+            pendingSshUser = split[0];
+            pendingSshIP = split[1];
+            currentMode = TerminalMode.SshPasswordPrompt;
         }
         else
         {
-            buffer.Add("Access denied.");
+            // ssh ip
+            pendingSshIP = arg;
+            pendingSshUser = "";
+            currentMode = TerminalMode.SshUsernamePrompt;
         }
-        currentMode = TerminalMode.Shell;
-        currentInput = "";
-    }
-}
-
-
-
-
-List<string> HandleSshCommand(string[] args)
-{
-    var output = new List<string>();
-    if (args.Length < 2)
-    {
-        output.Add("Usage: ssh [user@]host");
         return output;
     }
 
-    string arg = args[1];
+    bool TrySshLogin(string username, string ip, string password)
+    {
+        // TODO: Replace this with real network/user check
+        // For now: allow login if password is "password"
+        return password == "password";
+    }
 
-    if (arg.Contains("@"))
+    void RenderTerminal()
     {
-        // ssh user@ip
-        var split = arg.Split('@');
-        pendingSshUser = split[0];
-        pendingSshIP = split[1];
-        currentMode = TerminalMode.SshPasswordPrompt;
+        string cursor = showCursor ? "|" : " ";
+        string displayPrompt = "";
+
+        // Only show the shell prompt when in Shell mode and NOT in modal read.
+        if (currentMode == TerminalMode.Shell && !inModalRead)
+        {
+            string cwd = fsManager.GetCurrentPath();
+            displayPrompt = $"user@localhost:{cwd}$ " + currentInput + cursor;
+        }
+        else if (currentMode == TerminalMode.SshUsernamePrompt)
+        {
+            displayPrompt = "Username: " + currentInput + cursor;
+        }
+        else if (currentMode == TerminalMode.SshPasswordPrompt)
+        {
+            displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + new string('*', currentInput.Length) + cursor;
+            // Or if you don't want to echo password chars:
+            // displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + cursor;
+        }
+        else
+        {
+            displayPrompt = currentInput + cursor;
+        }
+
+        // Show terminal output, prompt only if not in modal
+        if (buffer.Count > 0)
+        {
+            if (!inModalRead)
+                terminalOutput.text = string.Join("\n", buffer) + "\n" + displayPrompt;
+            else
+                terminalOutput.text = string.Join("\n", buffer);
+        }
+        else
+        {
+            terminalOutput.text = displayPrompt;
+        }
     }
-    else
+
+    private IEnumerator ReadFileModal(string filename)
     {
-        // ssh ip
-        pendingSshIP = arg;
-        pendingSshUser = "";
-        currentMode = TerminalMode.SshUsernamePrompt;
+        buffer.Clear();
+
+        string fileContent = fsManager.CatFile(filename);
+        buffer.Add(fileContent + "\n\nPress any key to continue...");
+
+        RenderTerminal();
+
+        // Wait for *any* key press
+        bool keyPressed = false;
+        while (!keyPressed)
+        {
+            yield return null; // Wait a frame
+
+            if (Input.anyKeyDown)
+                keyPressed = true;
+        }
+
+        buffer.Clear();
+        inModalRead = false;
+        RenderTerminal();
     }
-    return output;
 }
-
-bool TrySshLogin(string username, string ip, string password)
-{
-    // TODO: Replace this with real network/user check
-    // For now: allow login if password is "password"
-    return password == "password";
-}
-
-
-void RenderTerminal()
-{
-    string cursor = showCursor ? "_" : " ";
-    string displayPrompt;
-
-    // Only show the shell prompt when in Shell mode.
-    if (currentMode == TerminalMode.Shell)
-    {
-        string cwd = fsManager.GetCurrentPath();
-        displayPrompt = $"user@localhost:{cwd}$ " + currentInput + cursor;
-    }
-    else if (currentMode == TerminalMode.SshUsernamePrompt)
-    {
-        displayPrompt = "Username: " + currentInput + cursor;
-    }
-    else if (currentMode == TerminalMode.SshPasswordPrompt)
-    {
-        displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + new string('*', currentInput.Length) + cursor;
-        // Or if you don't want to echo password chars:
-        // displayPrompt = $"Password for {pendingSshUser}@{pendingSshIP}: " + cursor;
-    }
-    else
-    {
-        displayPrompt = currentInput + cursor;
-    }
-
-if (buffer.Count > 0)
-    terminalOutput.text = string.Join("\n", buffer) + "\n" + displayPrompt;
-else
-    terminalOutput.text = displayPrompt;
-}
-
-
-}
-

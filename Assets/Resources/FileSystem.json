@@ -8,6 +8,27 @@
       "content": "Welcome to env0.core! This is your tutorial file."
     },
     {
+      "name": "bin",
+      "type": "dir",
+      "contents": [
+        { "name": "id_rsa", "type": "file", "content": "-----BEGIN RSA PRIVATE KEY-----\n[REDACTED]\n-----END RSA PRIVATE KEY-----" },
+        { "name": "id_rsa.pub", "type": "file", "content": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD... user@host" },
+        { "name": "key_backup.pem", "type": "file", "content": "-----BEGIN PRIVATE KEY-----\n[ENCRYPTED PRIVATE KEY]\n-----END PRIVATE KEY-----" },
+        { "name": "shadow_rsa", "type": "file", "content": "-----BEGIN RSA PRIVATE KEY-----\nObfuscated key material\n-----END RSA PRIVATE KEY-----" },
+        { "name": "README.txt", "type": "file", "content": "Why are there keys in /bin? Who put these here?" },
+        { "name": "pastedump.txt", "type": "file", "content": "596f75277265206c6f6f6b696e6720696e207468652077726f6e6720706c6163652e202f6461746120697320776865726520796f752077616e7420746f20626521"}
+      ]
+    },
+    {
+      "name": "etc",
+      "type": "dir",
+      "contents": [
+        { "name": "passwd", "type": "file", "content": "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:User:/home/user:/bin/bash" },
+        { "name": "hostname.txt", "type": "file", "content": "SBC_1" },
+        { "name": "motd", "type": "file", "content": "Welcome to env0.core. Stay a while." }
+      ]
+    },
+    {
       "name": "home",
       "type": "dir",
       "contents": [
@@ -15,19 +36,89 @@
           "name": "user",
           "type": "dir",
           "contents": [
-            {
-              "name": "welcome.txt",
-              "type": "file",
-              "content": "Welcome to SBC_1!"
-            }
+            { "name": "welcome.txt", "type": "file", "content": "Welcome to SBC_1! This is your home directory." },
+            { "name": "ramblings.txt", "type": "file", "content": "Don't trust the glow.\n\nYou think the flicker is cosmetic, but it’s not.\nIf you see double text, STOP TYPING." },
+            { "name": ".bashrc", "type": "file", "content": "# .bashrc\nexport PATH=$PATH:/usr/local/bin" },
+            { "name": ".ssh", "type": "dir", "contents": [
+              { "name": "id_rsa", "type": "file", "content": "[REDACTED PRIVATE KEY]" },
+              { "name": "known_hosts", "type": "file", "content": "server13.local\nworkstation03.local" }
+            ] }
+          ]
+        },
+        {
+          "name": "alice",
+          "type": "dir",
+          "contents": [
+            { "name": "notes.txt", "type": "file", "content": "Meeting at 10. Don't forget to commit your changes." }
           ]
         }
       ]
     },
     {
-      "name": "etc",
+      "name": "notes",
+      "type": "dir",
+      "contents": [
+        { "name": "observations.txt", "type": "file", "content": "Boot sequence seems to respond to external time distortion." },
+        { "name": "readme.txt", "type": "file", "content": "Nothing to see here. Really. Try /data instead." }
+      ]
+    },
+    {
+      "name": "data",
+      "type": "dir",
+      "contents": [
+        {
+          "name": "logs",
+          "type": "dir",
+          "contents": [
+            { "name": "mission2.txt", "type": "file", "content": "This file shouldn't be here.\n\nCredential Dump:\n  ip: 10.10.10.14\n  username: admin\n  password: serverpass\n[REDACTED]" }
+          ]
+        },
+        { "name": "temp.bin", "type": "file", "content": "[BINARY CONTENT TRUNCATED]" }
+      ]
+    },
+    {
+      "name": "var",
+      "type": "dir",
+      "contents": [
+        {
+          "name": "log",
+          "type": "dir",
+          "contents": [
+            { "name": "system.log", "type": "file", "content": "System boot successful.\nNo errors reported." }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tmp",
       "type": "dir",
       "contents": []
+    },
+    {
+      "name": "mnt",
+      "type": "dir",
+      "contents": [
+        { "name": "echo_state", "type": "dir", "contents": [] }
+      ]
+    },
+    {
+      "name": "usr",
+      "type": "dir",
+      "contents": [
+        {
+          "name": "local",
+          "type": "dir",
+          "contents": [
+            {
+              "name": "bin",
+              "type": "dir",
+              "contents": [
+                { "name": "fakeapp", "type": "file", "content": "ELF binary - not human readable." }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }

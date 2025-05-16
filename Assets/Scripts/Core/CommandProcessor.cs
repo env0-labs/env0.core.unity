@@ -35,6 +35,12 @@ public static class CommandProcessor
             else
                 output.Add(fsManager.CatFile(args[0]));
             break;
+        case "read":
+            if (args.Length < 1)
+                output.Add("Usage: read <filename>");
+            else
+                output.Add($"__READ__:{args[0]}"); // Use a special marker to signal modal read mode.
+            break;
         case "clear":
             // We'll handle this specially in TerminalManager
             break;
