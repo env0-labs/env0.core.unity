@@ -426,7 +426,6 @@ MonoBehaviour:
     type: 
     content: 
     contents: []
-  fsManager: {fileID: 693756586}
 --- !u!4 &693756587
 Transform:
   m_ObjectHideFlags: 0
@@ -621,7 +620,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 3.2941284, y: 1.0454715, z: 0, w: 1.4194947}
+  m_margin: {x: 50, y: 50, z: 50, w: 50}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

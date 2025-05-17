@@ -3,6 +3,7 @@ using UnityEngine;
 public class FileSystemLoader : MonoBehaviour
 {
     public TextAsset fileSystemJson;
+    [HideInInspector]
     public FileSystemEntry root;
 
     void Awake()

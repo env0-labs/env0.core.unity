@@ -3,6 +3,7 @@ using System.IO;
 
 public class FileSystemManager : MonoBehaviour
 {
+    [HideInInspector]
     public FileSystemEntry root;  // Root of the filesystem
     private FileSystemEntry currentDirectory;  // Current directory the user is in
 
@@ -208,6 +209,7 @@ public bool ChangeDirectory(string path)
     [System.Serializable]
     private class StructureRoot
     {
+        [HideInInspector]
         public FileSystemEntry root;
     }
 }
