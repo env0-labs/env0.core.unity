@@ -152,7 +152,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terminalOutput: {fileID: 1098291328}
-  fsManager: {fileID: 693756586}
+  bootSequenceHandler: {fileID: 706118526}
+  loginHandler: {fileID: 706118527}
+  fileSystemLoader: {fileID: 693756585}
+  fileSystemManager: {fileID: 693756586}
+  currentMode: 0
+  currentInput: 
 --- !u!114 &163937164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -436,6 +441,87 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 149.33691, y: 583.3063, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &706118525
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 706118529}
+  - component: {fileID: 706118528}
+  - component: {fileID: 706118527}
+  - component: {fileID: 706118526}
+  m_Layer: 0
+  m_Name: BootManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &706118526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706118525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a40a2013222c91408c84f7404b987db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terminalManager: {fileID: 0}
+--- !u!114 &706118527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706118525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 452f917d744c24b40981149bd5350bf3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terminalManager: {fileID: 0}
+  username: 
+  password: 
+--- !u!114 &706118528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706118525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7dcd7260b190b449b31e802cbe50857, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terminalOutput: {fileID: 1098291328}
+  bootSequenceHandler: {fileID: 706118526}
+  loginHandler: {fileID: 706118527}
+  fileSystemLoader: {fileID: 693756585}
+  fileSystemManager: {fileID: 693756586}
+  currentMode: 0
+  currentInput: 
+--- !u!4 &706118529
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 706118525}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 614.7956, y: 355.9957, z: 0.92649996}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -740,3 +826,4 @@ SceneRoots:
   - {fileID: 163937167}
   - {fileID: 1858092415}
   - {fileID: 693756587}
+  - {fileID: 706118529}
