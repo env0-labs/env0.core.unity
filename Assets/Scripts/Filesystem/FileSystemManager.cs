@@ -1,142 +1,72 @@
 using UnityEngine;
+using System.IO;
 
 public class FileSystemManager : MonoBehaviour
 {
-    public FileSystemEntry root;
-    private FileSystemEntry currentDirectory;
+    public FileSystemEntry root;  // Root of the filesystem
+    private FileSystemEntry currentDirectory;  // Current directory the user is in
 
-    public FileSystemManager fsManager;
-
-
-    void Awake()
-    {
-        // currentDirectory is set in Start instead of Awake to ensure root is set by loader
-    }
+    private string filesystemDirectoryPath = "Assets/Resources/Filesystems/";
 
     void Start()
     {
-    {
-        currentDirectory = root;
-        SetParents(root, null);
-    }
+        // Load filesystem for the current machine/device
+        LoadFilesystem(1);  // Example: Load filesystem type 1 for now
     }
 
-    // ... your ls, cd, cat methods ...
-
-    // List all entries in the current directory
-    public string[] ListDirectory()
+    public void LoadFilesystem(int filesystemType)
     {
-        if (currentDirectory.type != "dir") return new string[] { "(not a directory)" };
-        string[] names = new string[currentDirectory.contents.Length];
-        for (int i = 0; i < currentDirectory.contents.Length; i++)
+        string filename = $"filesystem_{filesystemType}.json";
+        string path = Path.Combine(filesystemDirectoryPath, filename);
+
+        if (File.Exists(path))
         {
-            names[i] = currentDirectory.contents[i].name;
-        }
-        return names;
-    }
+            string json = File.ReadAllText(path);
 
-    // Change the current directory by name
-public bool ChangeDirectory(string path)
-{
-    // Handle absolute path
-    if (path.StartsWith("/"))
-    {
-        return ChangeToPath(root, path.Substring(1));
-    }
-
-    // Handle parent
-    if (path == "..")
-    {
-        if (currentDirectory.parent != null)
-        {
-            currentDirectory = currentDirectory.parent;
-            return true;
-        }
-        return false; // Already at root
-    }
-
-    // Handle single directory (relative)
-    return ChangeToPath(currentDirectory, path);
-}
-
-private bool ChangeToPath(FileSystemEntry start, string path)
-{
-    if (string.IsNullOrEmpty(path))
-    {
-        currentDirectory = start;
-        return true;
-    }
-
-    var parts = path.Split('/', System.StringSplitOptions.RemoveEmptyEntries);
-    FileSystemEntry dir = start;
-
-    foreach (var part in parts)
-    {
-        if (part == ".") continue;
-        if (part == "..")
-        {
-            if (dir.parent != null) dir = dir.parent;
-            continue;
-        }
-        var found = false;
-        if (dir.type == "dir" && dir.contents != null)
-        {
-            foreach (var entry in dir.contents)
+            // Detect and handle "structure" wrapper format
+            if (json.Contains("\"structure\""))
             {
-                if (entry.name == part && entry.type == "dir")
+                var wrapper = JsonUtility.FromJson<FilesystemStructureWrapper>(json);
+                if (wrapper != null && wrapper.structure != null && wrapper.structure.root != null)
                 {
-                    dir = entry;
-                    found = true;
-                    break;
+                    root = wrapper.structure.root;
+                }
+                else
+                {
+                    Debug.LogError($"filesystem_{filesystemType}.json: Structure format is invalid.");
+                    return;
                 }
             }
-        }
-        if (!found)
-            return false;
-    }
-    currentDirectory = dir;
-    return true;
-}
-
-
-
-    // Get the contents of a file by name
-    public string CatFile(string fileName)
-    {
-        if (currentDirectory.type != "dir") return "(not a directory)";
-        foreach (var entry in currentDirectory.contents)
-        {
-            if (entry.name == fileName && entry.type == "file")
+            else
             {
-                return entry.content;
+                root = JsonUtility.FromJson<FileSystemEntry>(json);
             }
+
+            currentDirectory = root;
+            SetParents(root, null); // Ensure parent references are set
         }
-        return "File not found.";
+        else
+        {
+            Debug.LogError($"Filesystem template {filename} not found.");
+        }
     }
 
-    // Optionally, expose the current path or dir name
-    public string CurrentDirectoryName()
-    {
-        return currentDirectory.name;
-    }
-
-    // Helper method: get current path as a string
+    // Helper method to build the current path from the root to currentDirectory
     public string GetCurrentPath()
     {
-        // This is a simple "stack-less" version, only works if you never cd ..
-        // For now, just append names as you traverse from root (works for basic trees)
         return BuildPath(currentDirectory);
     }
 
+    // Recursive method to build the path from the root directory to the current directory
     private string BuildPath(FileSystemEntry entry)
     {
         if (entry == root || entry == null)
             return "/";
         else
-            return BuildPath(FindParent(root, entry)) + (BuildPath(FindParent(root, entry)) == "/" ? "" : "/") + entry.name;
+            return BuildPath(FindParent(root, entry)) + "/" + entry.name;
     }
 
-    // Recursively find parent directory of an entry (only for root->leaf trees)
+    // Helper method to find the parent directory of a file/directory
     private FileSystemEntry FindParent(FileSystemEntry parent, FileSystemEntry child)
     {
         if (parent.contents == null) return null;
@@ -152,7 +82,21 @@ private bool ChangeToPath(FileSystemEntry start, string path)
         return null;
     }
 
+    // Get the contents of a file by name
+    public string CatFile(string fileName)
+    {
+        if (currentDirectory.type != "dir") return "(not a directory)";
+        foreach (var entry in currentDirectory.contents)
+        {
+            if (entry.name == fileName && entry.type == "file")
+            {
+                return entry.content;
+            }
+        }
+        return "File not found.";
+    }
 
+    // Set the parent references for directories
     public void SetParents(FileSystemEntry entry, FileSystemEntry parent)
     {
         entry.parent = parent;
@@ -164,5 +108,106 @@ private bool ChangeToPath(FileSystemEntry start, string path)
             }
         }
     }
+
+    // List all entries in the current directory
+    public string[] ListDirectory()
+    {
+        // If the current directory is not a directory, return an error message
+        if (currentDirectory.type != "dir")
+            return new string[] { "(not a directory)" };
+
+        // List all the contents (directories and files) in the current directory
+        string[] names = new string[currentDirectory.contents.Length];
+        for (int i = 0; i < currentDirectory.contents.Length; i++)
+        {
+            names[i] = currentDirectory.contents[i].name;
+        }
+        return names;
+    }
+
+    // Change the current directory by name
+public bool ChangeDirectory(string path)
+{
+    // Handle absolute paths
+    if (path.StartsWith("/"))
+    {
+        return ChangeToPath(root, path.Substring(1));  // Strip the leading "/" for absolute path
+    }
+
+    // Handle current directory
+    if (path == ".")
+    {
+        return true;
+    }
+
+    // Handle parent directory
+    if (path == "..")
+    {
+        if (currentDirectory.parent != null)
+        {
+            currentDirectory = currentDirectory.parent;
+            return true;
+        }
+        return false; // Already at the root, can't go up
+    }
+
+    // Handle all other relative paths
+    return ChangeToPath(currentDirectory, path);  // Handle single directory (relative)
 }
 
+
+    // Helper method to change directory based on path
+    private bool ChangeToPath(FileSystemEntry start, string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            currentDirectory = start;
+            return true;
+        }
+
+        var parts = path.Split('/', System.StringSplitOptions.RemoveEmptyEntries);
+        FileSystemEntry dir = start;
+
+        foreach (var part in parts)
+        {
+            if (part == ".") continue;  // Stay in the same directory
+            if (part == "..") // Move up one directory
+            {
+                if (dir.parent != null) dir = dir.parent;
+                continue;
+            }
+
+            bool found = false;
+            if (dir.type == "dir" && dir.contents != null)
+            {
+                foreach (var entry in dir.contents)
+                {
+                    if (entry.name == part && entry.type == "dir")
+                    {
+                        dir = entry;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found)
+                return false;  // Directory not found
+        }
+
+        currentDirectory = dir;
+        return true;  // Successfully changed directory
+    }
+
+    // Wrapper classes for structure-style filesystems
+    [System.Serializable]
+    private class FilesystemStructureWrapper
+    {
+        public StructureRoot structure;
+    }
+
+    [System.Serializable]
+    private class StructureRoot
+    {
+        public FileSystemEntry root;
+    }
+}

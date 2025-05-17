@@ -1,0 +1,114 @@
+{
+  "devices": [
+    {
+      "name": "server01.local",
+      "ip": "10.10.10.1",
+      "filesystemType": 1,
+      "openPorts": {
+        "22": "open",
+        "80": "closed",
+        "443": "closed"
+      },
+      "mac": "00:14:22:01:23:45"
+    },
+    {
+      "name": "workstation02.local",
+      "ip": "10.10.10.2",
+      "filesystemType": 2,
+      "openPorts": {
+        "22": "open",
+        "8080": "open",
+        "443": "closed"
+      },
+      "mac": "00:14:22:01:23:46"
+    },
+    {
+      "name": "printer03.local",
+      "ip": "10.10.10.3",
+      "filesystemType": 3,
+      "openPorts": {
+        "22": "open",
+        "9100": "open",
+        "80": "closed"
+      },
+      "mac": "00:14:22:01:23:47"
+    },
+    {
+      "name": "hackerMachine04.local",
+      "ip": "10.10.10.4",
+      "filesystemType": 4,
+      "openPorts": {
+        "22": "open",
+        "21": "closed",
+        "443": "closed"
+      },
+      "mac": "00:14:22:01:23:48"
+    },
+    {
+      "name": "databaseServer05.local",
+      "ip": "10.10.10.5",
+      "filesystemType": 5,
+      "openPorts": {
+        "22": "open",
+        "5432": "open",
+        "80": "closed"
+      },
+      "mac": "00:14:22:01:23:49"
+    },
+    {
+      "name": "backupServer06.local",
+      "ip": "10.10.10.6",
+      "filesystemType": 6,
+      "openPorts": {
+        "22": "open",
+        "80": "closed",
+        "443": "closed"
+      },
+      "mac": "00:14:22:01:23:50"
+    },
+    {
+      "name": "externalDrive07.local",
+      "ip": "10.10.10.7",
+      "filesystemType": 7,
+      "openPorts": {
+        "22": "open",
+        "443": "closed",
+        "8080": "closed"
+      },
+      "mac": "00:14:22:01:23:51"
+    },
+    {
+      "name": "internalNetwork08.local",
+      "ip": "10.10.10.8",
+      "filesystemType": 8,
+      "openPorts": {
+        "22": "open",
+        "21": "open",
+        "443": "closed"
+      },
+      "mac": "00:14:22:01:23:52"
+    },
+    {
+      "name": "adminMachine09.local",
+      "ip": "10.10.10.9",
+      "filesystemType": 9,
+      "openPorts": {
+        "22": "open",
+        "8080": "closed",
+        "443": "open"
+      },
+      "mac": "00:14:22:01:23:53"
+    },
+    {
+      "name": "monitoringServer10.local",
+      "ip": "10.10.10.10",
+      "filesystemType": 10,
+      "openPorts": {
+        "22": "open",
+        "80": "open",
+        "443": "open"
+      },
+      "mac": "00:14:22:01:23:54"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Basic UNIX",
+  "structure": {
+    "root": {
+      "type": "dir",
+      "contents": [
+        {
+          "name": "home",
+          "type": "dir",
+          "contents": [
+            {
+              "name": "user",
+              "type": "dir",
+              "contents": [
+                {
+                  "name": "welcome.txt",
+                  "type": "file",
+                  "content": "Welcome to your basic UNIX machine!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "etc",
+          "type": "dir",
+          "contents": [
+            {
+              "name": "hostname.txt",
+              "type": "file",
+              "content": "UNIX Server"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
