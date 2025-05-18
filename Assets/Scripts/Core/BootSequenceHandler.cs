@@ -66,6 +66,12 @@ public class BootSequenceHandler : MonoBehaviour
 
     public IEnumerator StartBootSequence()
     {
+
+        Debug.Log(">>>> BootSequenceHandler.StartBootSequence CALLED");
+
+
+        bool didSkip = false;
+
         // Set mode to Boot at the start of the boot sequence
         terminalManager.SetMode(TerminalManager.TerminalMode.Boot);
         terminalManager.ClearBuffer();
@@ -76,7 +82,10 @@ public class BootSequenceHandler : MonoBehaviour
         while (bootPause < 5f)
         {
             if (Input.GetKeyDown(KeyCode.Tab))
-                goto BootSkip;
+            {
+                didSkip = true;
+                goto CleanSpinnerAndBootSkip;
+            }
             bootPause += Time.deltaTime;
             yield return null;
         }
@@ -93,7 +102,10 @@ public class BootSequenceHandler : MonoBehaviour
                 while (bootloaderPause < 3f)
                 {
                     if (Input.GetKeyDown(KeyCode.Tab))
-                        goto BootSkip;
+                    {
+                        didSkip = true;
+                        goto CleanSpinnerAndBootSkip;
+                    }
                     bootloaderPause += Time.deltaTime;
                     yield return null;
                 }
@@ -105,7 +117,10 @@ public class BootSequenceHandler : MonoBehaviour
                 while (timer < delay)
                 {
                     if (Input.GetKeyDown(KeyCode.Tab))
-                        goto BootSkip;
+                    {
+                        didSkip = true;
+                        goto CleanSpinnerAndBootSkip;
+                    }
                     timer += Time.deltaTime;
                     yield return null;
                 }
@@ -146,7 +161,10 @@ public class BootSequenceHandler : MonoBehaviour
                 }
 
                 if (Input.GetKeyDown(KeyCode.Tab))
-                    goto BootSkip;
+                {
+                    didSkip = true;
+                    goto CleanSpinnerAndBootSkip;
+                }
                 timer += Time.deltaTime;
                 yield return null;
             }
@@ -155,17 +173,36 @@ public class BootSequenceHandler : MonoBehaviour
             terminalManager.RenderTerminal();
         }
 
-    BootSkip:
-        // Print any missed specs and boot lines
-        foreach (var line in sbcSpecs)
+    // <<<<< INSERTED SPINNER CLEANUP RIGHT BEFORE BOOTSKIP >>>>>
+    CleanSpinnerAndBootSkip:
+        // Remove spinner from last line, if present
+        if (terminalManager.buffer.Count > 0)
         {
-            if (!terminalManager.buffer.Contains(line))
-                terminalManager.AddLine(line);
+            string lastLine = terminalManager.buffer[terminalManager.buffer.Count - 1];
+            foreach (var spin in new[] { " |", " /", " -", " \\" })
+            {
+                if (lastLine.EndsWith(spin))
+                {
+                    terminalManager.buffer[terminalManager.buffer.Count - 1] =
+                        lastLine.Substring(0, lastLine.Length - spin.Length);
+                    break;
+                }
+            }
+            terminalManager.RenderTerminal();
         }
-        foreach (var line in bootLines)
+
+        if (didSkip)
         {
-            if (!terminalManager.buffer.Contains(line))
-                terminalManager.AddLine(line);
+            foreach (var line in sbcSpecs)
+            {
+                if (!terminalManager.buffer.Contains(line))
+                    terminalManager.AddLine(line);
+            }
+            foreach (var line in bootLines)
+            {
+                if (!terminalManager.buffer.Contains(line))
+                    terminalManager.AddLine(line);
+            }
         }
 
         terminalManager.AddLine("Press any key to continue...");

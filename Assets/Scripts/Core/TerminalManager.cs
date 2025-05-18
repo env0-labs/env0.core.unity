@@ -23,6 +23,10 @@ public class TerminalManager : MonoBehaviour
 
     void Start()
     {
+
+        Debug.Log("BootManagers in scene: " + FindObjectsOfType<BootSequenceHandler>().Length);
+        Debug.Log("TerminalManagers in scene: " + FindObjectsOfType<TerminalManager>().Length);
+
         // Start the terminal setup flow by triggering boot and login sequences.
         StartCoroutine(StartTerminal());
     }

@@ -157,6 +157,7 @@ MonoBehaviour:
   fileSystemLoader: {fileID: 693756585}
   fileSystemManager: {fileID: 693756586}
   currentMode: 0
+  buffer: []
   currentInput: 
 --- !u!114 &163937164
 MonoBehaviour:
@@ -477,7 +478,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a40a2013222c91408c84f7404b987db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terminalManager: {fileID: 0}
+  terminalManager: {fileID: 706118528}
 --- !u!114 &706118527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -490,7 +491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 452f917d744c24b40981149bd5350bf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terminalManager: {fileID: 0}
+  terminalManager: {fileID: 706118528}
   username: 
   password: 
 --- !u!114 &706118528
@@ -511,6 +512,7 @@ MonoBehaviour:
   fileSystemLoader: {fileID: 693756585}
   fileSystemManager: {fileID: 693756586}
   currentMode: 0
+  buffer: []
   currentInput: 
 --- !u!4 &706118529
 Transform:
