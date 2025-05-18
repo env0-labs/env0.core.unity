@@ -23,6 +23,8 @@ public class TerminalManager : MonoBehaviour
 
     void Start()
     {
+
+        
         // Start the terminal setup flow by triggering boot and login sequences.
         StartCoroutine(StartTerminal());
     }
